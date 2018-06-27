@@ -4,34 +4,12 @@ namespace Satellite;
 
 class Config
 {
-    public static $defaultConfig = [
-        'languages' => [
-            'available' => ['en'],
-            'default' => 'en'
-        ],
-        'domains' => [
-            '*' => 'default',
-        ],
-        'env' => 'production',
-
-        'cache' => [
-            'path' => __DIR__ . '/../../cache',
-        ],
-
-        // See https://www.slimframework.com/docs/objects/application.html#application-configuration
-        // for more details
-        'system' => [
-            'settings' => [
-                'displayErrorDetails' => true,
-            ]
-        ]
-    ];
-
     private static $config = [];
 
     public static function initialize(array $config)
     {
-        self::$config = array_replace_recursive(self::$defaultConfig, $config);
+        $defaultConfig = require(__DIR__ . '/../config.php');
+        self::$config = array_replace_recursive($defaultConfig, $config);
     }
 
     public static function load(string $configFile, $silent = false)

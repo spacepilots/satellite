@@ -53,7 +53,7 @@ class App
         // };
 
         $this->app->get('/[{path:.*}]', function (Request $request, Response $response, $args) use ($satellite) {
-            $nodeId = $satellite->router->match($request);
+            list($siteIdentifier, $nodeId) = $satellite->router->match($request);
 
             if (!$nodeId) {
                 throw new \Slim\Exception\NotFoundException($request, $response);
@@ -61,8 +61,11 @@ class App
 
             $node = $satellite->nodes[$nodeId];
             $path = str_replace($satellite->rootPath, '', $node->getPath());
+            $site = new Site($siteIdentifier);
 
-            return $this->view->render($response, $path, []);
+            return $this->view->render($response, $path, [
+                'site' => $site
+            ]);
         });
     }
 

@@ -1,13 +1,13 @@
 <!doctype html>
-<html class="no-js" lang="{{ page.language|default(site.language)}}">
+<html class="no-js" lang="{{ page.languages.current|default(site.languages.current)}}">
 
 <head>
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   {% block title %}
-  <title>{% if page.title %}{{ page.title|e('html') }} | {% endif %}{{ site.title|e('html') }}</title>
+  <title>{% if page.title %}{{ page.title|e('html') }} | {% endif %}{{ site.metadata.title|e('html') }}</title>
   {% endblock %}
-  <meta name="description" content="{{ page.description|default(site.description)}}">
+  <meta name="description" content="{{ page.metadata.description|default(site.metadata.description)}}">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   {% block opengraph %}
@@ -23,6 +23,8 @@
   <meta name="twitter:site" content="{{ site.twitter }}">
   <meta name="twitter:creator" content="{{ site.twitter }}">
   {% endblock %}
+
+  {% block head %}{% endblock %}
 
   <link rel="manifest" href="site.webmanifest">
   <link rel="apple-touch-icon" href="icon.png">

@@ -2,7 +2,9 @@
 
 namespace Satellite;
 
-use \Slim\Http\Request;
+use Satellite\Nodes\Node;
+use Satellite\Nodes\Repository;
+use Slim\Http\Request;
 
 class Router
 {
@@ -15,10 +17,10 @@ class Router
         return $this->routes;
     }
 
-    public function refresh(Nodes $nodes)
+    public function refresh(Repository $nodes)
     {
         foreach ($nodes->getNodes() as $node) {
-            if (!$node->isRoutable()) {
+            if (!$node->getFlag("routable")) {
                 continue;
             }
             $this->routes[$this->getPath($nodes, $node)] = $node->getId();
@@ -28,13 +30,10 @@ class Router
     public function match(Request $request)
     {
         $site = $this->findSite($request);
-        $path = "/$site" . $request->getUri()->getPath();
+        $path = "/$site" . ltrim($request->getUri()->getPath(), "/");
 
         if (array_key_exists($path, $this->routes)) {
             return [$site, $this->routes[$path]];
-        }
-        if (array_key_exists($path . 'index', $this->routes)) {
-            return [$site, $this->routes[$path . 'index']];
         }
 
         return null;
@@ -63,17 +62,23 @@ class Router
         return $site;
     }
 
-    protected function getPath(Nodes $nodes, Node $node)
+    protected function getPath(Repository $nodes, Node $node)
     {
         $path = [];
         $pointer = $node;
 
-        do {
-            $segments = explode(".", basename($pointer->getPath()));
-            $path[] = reset($segments);
-            $pointer = $nodes->getParent($pointer);
-        } while ($pointer !== null);
+        while ($pointer !== null) {
+            $segment = $pointer->getName();
+            // $data = $pointer->getData();
 
-        return "/" . implode("/", array_reverse($path));
+            // if (!empty($data) && isset($data['slug'])) {
+            //     $segment = $data['slug'];
+            // }
+
+            $path[] = $segment;
+            $pointer = $nodes->getParent($pointer);
+        }
+
+        return "/" . implode("/", array_reverse(array_filter($path)));
     }
 }

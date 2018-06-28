@@ -25,6 +25,11 @@ class Config
         }
     }
 
+    public static function env()
+    {
+        return self::get("env");
+    }
+
     public static function get($path, $defaultValue = null)
     {
         if (is_string($path)) {

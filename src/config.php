@@ -23,7 +23,8 @@ return [
     ],
 
     'cache' => [
-        'path' => __DIR__ . '/../../cache',
+        // 'path' => __DIR__ . '/../../cache',
+        'path' => false
     ],
 
     // See https://www.slimframework.com/docs/objects/application.html#application-configuration

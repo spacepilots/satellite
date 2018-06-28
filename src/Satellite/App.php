@@ -2,8 +2,9 @@
 
 namespace Satellite;
 
-use \Psr\Http\Message\ServerRequestInterface as Request;
-use \Psr\Http\Message\ResponseInterface as Response;
+use Satellite\Nodes\Repository as NodeRepository;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
 
 class App
 {
@@ -23,8 +24,11 @@ class App
 
         $this->app = new \Slim\App(Config::get('system'));
 
-        $this->findNodes();
-        $this->findRoutes();
+        $this->nodes = new NodeRepository();
+        $this->nodes->find($this->rootPath . '/pages');
+
+        $this->router = new Router();
+        $this->router->refresh($this->nodes);
 
         $satellite = $this;
         $container = $this->app->getContainer();
@@ -34,7 +38,7 @@ class App
                 '__main__' => $satellite->rootPath,
                 'base' => $satellite->systemPath . '/base',
             ], [
-                'debug' => Config::get('env', false),
+                'debug' => Config::env() === 'development',
                 'cache' => Config::get(['cache', 'path'])
             ]);
 
@@ -52,6 +56,16 @@ class App
         //     };
         // };
 
+        if (Config::env() === "development") {
+            $this->app->get('/satellite/debug', function(Request $request, Response $response) use ($satellite) {
+                return $this->view->render($response, "@base/pages/debug.html.twig", [
+                    'nodes' => $satellite->nodes->getNodes(),
+                    'routes' => $satellite->router->getRoutes(),
+                    // 'site' => $site
+                ]);
+            });
+        }
+
         $this->app->get('/[{path:.*}]', function (Request $request, Response $response, $args) use ($satellite) {
             list($siteIdentifier, $nodeId) = $satellite->router->match($request);
 
@@ -60,7 +74,7 @@ class App
             }
 
             $node = $satellite->nodes[$nodeId];
-            $path = str_replace($satellite->rootPath, '', $node->getPath());
+            $path = str_replace($satellite->rootPath, '', $node->getRealPath());
             $site = new Site($siteIdentifier);
 
             return $this->view->render($response, $path, [
@@ -72,46 +86,5 @@ class App
     public function run()
     {
         $this->app->run();
-    }
-
-    protected function findNodes()
-    {
-        $pagePath = realpath($this->rootPath . '/pages');
-
-        if (!$pagePath) {
-            throw new \RuntimeException("Missing pages/ folder");
-        }
-
-        $nodes = [];
-        $parent = null;
-
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($pagePath),
-            \RecursiveIteratorIterator::SELF_FIRST
-        );
-
-        while($iterator->valid()) {
-            if (!$iterator->isDot()) {
-                $node = new Node($iterator->getRealPath());
-                $node->setParent($parent);
-                $node->setRoutable($iterator->isFile());
-
-                if ($iterator->isDir()) {
-                    $parent = $node->getId();
-                }
-
-                $nodes[$node->getId()] = $node;
-            }
-            $iterator->next();
-        }
-
-        $this->nodes = new Nodes($nodes);
-        $this->nodes->parseAll();
-    }
-
-    protected function findRoutes()
-    {
-        $this->router = new Router();
-        $this->router->refresh($this->nodes);
     }
 }

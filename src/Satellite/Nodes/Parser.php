@@ -2,63 +2,68 @@
 
 namespace Satellite\Nodes;
 
-use Symfony\Component\Yaml\Yaml;
+use Satellite\Nodes\Types\Controller;
+use Satellite\Nodes\Types\Data;
+use Satellite\Nodes\Types\Directory;
+use Satellite\Nodes\Types\File;
+use Satellite\Nodes\Types\Template;
+use SplFileInfo;
 
 class Parser
 {
-    protected static $protectedNames = ["404"];
-
-    public function parse(Node $node)
+    /**
+     * @param SplFileInfo $file
+     * @return Node
+     */
+    public function parse($siteId, SplFileInfo $file)
     {
-        $this->parseFrontMatter($node);
-        $this->parseName($node);
-        $node->setFlag("parsed", true);
-    }
+        $node = $this->createNode($file);
+        $node->setSiteId($siteId);
 
-    protected function parseName(Node $node)
-    {
-        $file = $node->getFile();
+        $name = $node->getName();
 
-        $dirname = dirname($file->getRealPath());
-        $basename = $file->getBasename(".html.twig");
-
-        if (preg_match('/.+\.(\w{2}(\_\w{2})?)$/i', $basename, $localeMatches)) {
+        // TODO: Compare locales against a list of valid locales
+        if (preg_match('/.+\.(\w{2}(\_\w{2})?)$/i', $name, $localeMatches)) {
+            if (!method_exists($node, "setLocale")) {
+                throw new \RuntimeException("File '{$file->getRealPath()}' cannot be localized");
+            }
             $node->setLocale($localeMatches[1]);
-            $basename = substr($basename, 0, (strlen($localeMatches[1]) + 1) * -1);
+            $name = substr($name, 0, (strlen($localeMatches[1]) + 1) * -1);
         }
-        if (preg_match('/^(\d+\.).+/', $basename, $orderMatches)) {
-            $node->setOrder($node->getParent(), intval($orderMatches[1]));
-            $basename = substr($basename, strlen($orderMatches[1]));
-        }
-
-        if (in_array($basename , self::$protectedNames)) {
-            $node->setFlag("routable", false);
+        if (preg_match('/^(\d+\.).+/', $name, $orderMatches)) {
+            // $node->setOrder(intval($orderMatches[1]));
+            $name = substr($name, strlen($orderMatches[1]));
         }
 
-        $node->setName($basename);
+        $node->setName($name);
+
+        return $node;
     }
 
-    protected function parseFrontMatter(Node $node)
+    /**
+     * @param SplFileInfo $file
+     * @return Satellite\Nodes\Types\Node
+     */
+    protected function createNode(SplFileInfo $file)
     {
-        if (!$node->getFile()->isFile()) {
-            return;
+        if ($file->isDir()) {
+            return new Directory($file);
         }
 
-        // TODO: Add caching.
-        $content = file_get_contents($node->getRealPath());
-
-        $pattern = '/^[\s\r\n]?---[\s\r\n]?$/sm';
-        $parts = preg_split($pattern, PHP_EOL . ltrim($content));
-
-        if (count($parts) < 3) {
-            $matter = [];
-            $body = $content;
-        } else {
-            $matter = Yaml::parse(trim($parts[1]));
-            $body = implode(PHP_EOL . '---' . PHP_EOL, array_slice($parts, 2));
+        switch ($file->getExtension()) {
+            case "twig":
+                $node = new Template($file);
+                return $node;
+            case "yaml":
+            case "yml":
+                $node = new Data($file);
+                return $node;
+            case "php":
+                $node = new Controller($file);
+                return $node;
+            default:
+                $node = new File($file);
+                return $node;
         }
-
-        $node->setData($matter);
-        // $node->setTemplate($body);
     }
 }

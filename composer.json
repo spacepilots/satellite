@@ -1,17 +1,17 @@
 {
-    "name": "spacepilots/satellite",
-    "description": "Satellite is a simple, file-based toolkit for websites.",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Christian Schuhmann",
-            "email": "christian@spacepilots.co"
-        }
-    ],
-    "require": {
-        "twig/twig": "^2.4",
-        "slim/slim": "^3.10",
-        "symfony/yaml": "^4.1",
-        "slim/twig-view": "^2.4"
+  "name": "spacepilots/satellite",
+  "description": "Satellite is a simple, file-based toolkit for websites.",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Christian Schuhmann"
     }
+  ],
+  "require": {
+    "twig/twig": "^2.4",
+    "slim/slim": "^3.10",
+    "symfony/yaml": "^4.1",
+    "slim/twig-view": "^2.4",
+    "cocur/slugify": "^3.1"
+  }
 }

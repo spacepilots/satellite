@@ -1,0 +1,89 @@
+---
+title: Debug
+---
+{% extends "@base/templates/layout.html.twig" %}
+
+{% block content %}
+{% include "@base/pages/satellite/partials/navbar.html.twig" %}
+
+<form class="p-2" method="get" action="/satellite/nodes">
+  <div class="form-row">
+    <div class="form-group col-md-2">
+      <label class="sr-only" for="filter_site">Site</label>
+      <select class="form-control" id="filter_site" name="site">
+        {% for site in filter.sites %}
+          <option value="{{ site }}"{{ site is same as(filter.site) ? " selected" : "" }}>
+            {{ site }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group col-md-2">
+      <label class="sr-only" for="filter_type">Type</label>
+      <select class="form-control" id="filter_type" name="type">
+        {% for type in filter.types %}
+          <option value="{{ type }}"{{ type is same as(filter.type) ? " selected" : "" }}>
+            {{ type }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group col-md-8">
+      <button type="submit" class="btn">Filter</button>
+    </div>
+  </div>
+</form>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Node</th>
+      <th>Type</th>
+      <th>Site</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for node in nodes %}
+      <tr id="{{ node.id }}" class="node">
+        <td>
+          <a href="/satellite/nodes/{{ node.id }}">{{ node.name }}</a><br />
+          <small>{{ node.path }}</small>
+        </td>
+        <td>
+          {{ node.type }}
+        </td>
+        <td>
+          {{ node.site }}
+        </td>
+        <td>
+          {% if node.parent is not empty %}
+            <a href="#{{ node.parent }}" class="btn btn-sm btn-light">
+              Show parent
+            </a>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+{% block header %}
+  {% embed "@base/templates/partials/header.html.twig" %}
+    {% block stylesheets %}
+      <link
+        rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+        integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
+        crossorigin="anonymous"
+      >
+      <style>
+        .node { margin-bottom: 1rem; }
+        .node:target { background: #fffde2; }
+      </style>
+    {% endblock %}
+  {% endembed %}
+{% endblock %}

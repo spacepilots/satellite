@@ -10,7 +10,7 @@ return [
             'title' => 'Satellite',
         ],
 
-        'languages' => [
+        'locales' => [
             'available' => ['en'],
             'default' => 'en'
         ],

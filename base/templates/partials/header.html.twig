@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   {% block title %}
-  <title>{% if page.title %}{{ page.title|e('html') }} | {% endif %}{{ site.metadata.title|e('html') }}</title>
+  <title>{% if page.data.title %}{{ page.data.title|e('html') }} | {% endif %}{{ site.metadata.title|e('html') }}</title>
   {% endblock %}
   <meta name="description" content="{{ page.metadata.description|default(site.metadata.description)}}">
   <meta name="viewport" content="width=device-width, initial-scale=1">

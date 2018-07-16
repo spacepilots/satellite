@@ -30,6 +30,14 @@ class Config
         return self::get("env");
     }
 
+    public static function site($identifier)
+    {
+        return array_replace_recursive(
+            self::get('site', []),
+            self::get(['sites', $identifier], [])
+        );
+    }
+
     public static function get($path, $defaultValue = null)
     {
         if (is_string($path)) {
